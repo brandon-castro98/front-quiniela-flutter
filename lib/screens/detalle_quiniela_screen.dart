@@ -263,6 +263,402 @@ class _DetalleQuinielaScreenState extends State<DetalleQuinielaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Icon(Icons.sports_soccer, color: Colors.amber.shade700),
+            SizedBox(width: 8),
+            Text('Detalle Quiniela'),
+          ],
+        ),
+        backgroundColor: Colors.deepPurple,
+      ),
+      backgroundColor: Colors.amber.shade50,
+      body: _loading
+          ? Center(child: CircularProgressIndicator())
+          : _quiniela == null
+          ? Center(child: Text('No se encontró la quiniela'))
+          : SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Card(
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.emoji_events,
+                              color: Colors.deepPurple,
+                              size: 32,
+                            ),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                _quiniela!['nombre'],
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.deepPurple.shade700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Apuesta: \$${_quiniela!['apuesta_individual']}',
+                          style: TextStyle(
+                            color: Colors.deepPurple.shade400,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Text(
+                          'Dueño: ${_quiniela!['creada_por']}',
+                          style: TextStyle(fontSize: 16, color: Colors.blue),
+                        ),
+                        SizedBox(height: 12),
+                        if (_usuarioActual != null &&
+                            _quiniela != null &&
+                            _usuarioActual!.trim().toLowerCase() ==
+                                _quiniela!['creada_por']
+                                    .toString()
+                                    .trim()
+                                    .toLowerCase())
+                          Row(
+                            children: [
+                              Text(
+                                'Mostrar elecciones a todos:',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Switch(
+                                value:
+                                    _quiniela!['mostrar_elecciones'] ?? false,
+                                onChanged: (val) async {
+                                  final ok =
+                                      await ApiService.setMostrarElecciones(
+                                        widget.quinielaId,
+                                        val,
+                                      );
+                                  if (ok) {
+                                    await _loadDetalle();
+                                    await _loadElecciones();
+                                    setState(() {});
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Error al actualizar visibilidad',
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        SizedBox(height: 12),
+                        if (_quiniela!['mostrar_elecciones'] == true)
+                          Builder(
+                            builder: (context) {
+                              final userRank = _ranking.firstWhere(
+                                (r) => r['usuario'] == _usuarioActual,
+                                orElse: () => null,
+                              );
+                              if (userRank != null) {
+                                return Container(
+                                  margin: EdgeInsets.symmetric(vertical: 8),
+                                  padding: EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.amber.shade700,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.emoji_events,
+                                        color: Colors.white,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Tus aciertos: ${userRank['aciertos']}   |   Porcentaje: ${userRank['porcentaje']}%',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                              return SizedBox.shrink();
+                            },
+                          )
+                        else
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              'Las elecciones de los participantes están ocultas.',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        SizedBox(height: 20),
+                        Card(
+                          color: Colors.deepPurple.shade50,
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Participantes',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.deepPurple,
+                                  ),
+                                ),
+                                ...(_quiniela!['participantes'] as List).map<
+                                  Widget
+                                >((p) {
+                                  final eleccionesParticipante = _elecciones
+                                      .firstWhere(
+                                        (e) => e['participante'] == p,
+                                        orElse: () => null,
+                                      );
+                                  return ExpansionTile(
+                                    title: Row(
+                                      children: [
+                                        Text(p.toString()),
+                                        SizedBox(width: 8),
+                                        Builder(
+                                          builder: (context) {
+                                            final rank = _ranking.firstWhere(
+                                              (r) => r['usuario'] == p,
+                                              orElse: () => null,
+                                            );
+                                            if (rank != null) {
+                                              return Container(
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: 8,
+                                                  vertical: 2,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.green.shade600,
+                                                  borderRadius:
+                                                      BorderRadius.circular(6),
+                                                ),
+                                                child: Text(
+                                                  'Aciertos: ${rank['aciertos']} | %: ${rank['porcentaje']}',
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 13,
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                            return SizedBox.shrink();
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    children:
+                                        (_quiniela!['mostrar_elecciones'] ==
+                                                true ||
+                                            p == _usuarioActual)
+                                        ? (eleccionesParticipante != null
+                                              ? (eleccionesParticipante['elecciones']
+                                                        as List)
+                                                    .map<Widget>((el) {
+                                                      return ListTile(
+                                                        title: Text(
+                                                          '${el['equipo_local']} vs ${el['equipo_visitante']}',
+                                                          style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                        subtitle: Text(
+                                                          'Elegido: ${el['equipo_elegido']}',
+                                                          style: TextStyle(
+                                                            color: Colors
+                                                                .deepPurple,
+                                                          ),
+                                                        ),
+                                                        trailing:
+                                                            el['resultado_real'] !=
+                                                                null
+                                                            ? Text(
+                                                                'Resultado: ${el['resultado_real']}',
+                                                              )
+                                                            : null,
+                                                      );
+                                                    })
+                                                    .toList()
+                                              : [
+                                                  ListTile(
+                                                    title: Text(
+                                                      'Sin elecciones registradas',
+                                                    ),
+                                                  ),
+                                                ])
+                                        : [
+                                            ListTile(
+                                              title: Text(
+                                                p == _usuarioActual
+                                                    ? 'Tus elecciones están ocultas para los demás.'
+                                                    : 'Las elecciones de este participante están ocultas.',
+                                                style: TextStyle(
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                  );
+                                }).toList(),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 24),
+                        Text(
+                          'Partidos:',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.deepPurple,
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Card(
+                          color: Colors.amber.shade50,
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: SizedBox(
+                            height: 300,
+                            child: ListView.builder(
+                              itemCount:
+                                  (_quiniela!['partidos'] as List).length,
+                              itemBuilder: (context, idx) {
+                                final partido = _quiniela!['partidos'][idx];
+                                return ListTile(
+                                  title: Text(
+                                    '${partido['equipo_local']} vs ${partido['equipo_visitante']}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    'Resultado: ${partido['resultado_real'] ?? "Sin resultado"}',
+                                  ),
+                                  trailing:
+                                      (_usuarioActual != null &&
+                                          _usuarioActual!
+                                                  .trim()
+                                                  .toLowerCase() ==
+                                              _quiniela!['creada_por']
+                                                  .toString()
+                                                  .trim()
+                                                  .toLowerCase())
+                                      ? IconButton(
+                                          icon: Icon(
+                                            Icons.edit,
+                                            color: Colors.amber,
+                                          ),
+                                          tooltip: 'Ingresar resultado',
+                                          onPressed: () =>
+                                              _ingresarResultado(partido['id']),
+                                        )
+                                      : null,
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 24),
+                        if (_usuarioActual != null &&
+                            _quiniela != null &&
+                            _usuarioActual!.trim().toLowerCase() !=
+                                _quiniela!['creada_por']
+                                    .toString()
+                                    .trim()
+                                    .toLowerCase())
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Text(
+                              'No puedes agregar partidos si no eres el creador de la quiniela.',
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        Text(
+                          'Agregar Partido',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _localController,
+                                decoration: InputDecoration(
+                                  labelText: 'Equipo Local',
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: TextField(
+                                controller: _visitanteController,
+                                decoration: InputDecoration(
+                                  labelText: 'Equipo Visitante',
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            ElevatedButton(
+                              onPressed:
+                                  (_usuarioActual != null &&
+                                      _quiniela != null &&
+                                      _usuarioActual!.trim().toLowerCase() ==
+                                          _quiniela!['creada_por']
+                                              .toString()
+                                              .trim()
+                                              .toLowerCase())
+                                  ? _agregarPartido
+                                  : null,
+                              child: Text('Agregar'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.deepPurple,
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
       floatingActionButton: Align(
         alignment: Alignment.bottomRight,
         child: Wrap(
@@ -353,309 +749,6 @@ class _DetalleQuinielaScreenState extends State<DetalleQuinielaScreen> {
           ],
         ),
       ),
-      appBar: AppBar(title: Text('Detalle Quiniela')),
-      body: _loading
-          ? Center(child: CircularProgressIndicator())
-          : _quiniela == null
-          ? Center(child: Text('No se encontró la quiniela'))
-          : Padding(
-              padding: EdgeInsets.all(16),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Nombre: ${_quiniela!['nombre']}',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text('Apuesta: \$${_quiniela!['apuesta_individual']}'),
-                    Text(
-                      'Dueño: ${_quiniela!['creada_por']}',
-                      style: TextStyle(fontSize: 16, color: Colors.blue),
-                    ),
-                    if (_usuarioActual != null &&
-                        _quiniela != null &&
-                        _usuarioActual!.trim().toLowerCase() ==
-                            _quiniela!['creada_por']
-                                .toString()
-                                .trim()
-                                .toLowerCase())
-                      Row(
-                        children: [
-                          Text(
-                            'Mostrar elecciones a todos:',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Switch(
-                            value: _quiniela!['mostrar_elecciones'] ?? false,
-                            onChanged: (val) async {
-                              final ok = await ApiService.setMostrarElecciones(
-                                widget.quinielaId,
-                                val,
-                              );
-                              if (ok) {
-                                await _loadDetalle(); // <-- Recarga el detalle de la quiniela
-                                await _loadElecciones(); // <-- Recarga las elecciones
-                                setState(() {});
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Error al actualizar visibilidad',
-                                    ),
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                    if (_quiniela!['mostrar_elecciones'] == true)
-                      Builder(
-                        builder: (context) {
-                          final userRank = _ranking.firstWhere(
-                            (r) => r['usuario'] == _usuarioActual,
-                            orElse: () => null,
-                          );
-                          if (userRank != null) {
-                            return Container(
-                              margin: EdgeInsets.symmetric(vertical: 8),
-                              padding: EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.amber.shade700,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.emoji_events, color: Colors.white),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Tus aciertos: ${userRank['aciertos']}   |   Porcentaje: ${userRank['porcentaje']}%',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
-                          return SizedBox.shrink();
-                        },
-                      )
-                    else
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          'Las elecciones de los participantes están ocultas.',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ),
-                    SizedBox(height: 16),
-                    if (_usuarioActual != null &&
-                        _quiniela != null &&
-                        _usuarioActual!.trim().toLowerCase() !=
-                            _quiniela!['creada_por']
-                                .toString()
-                                .trim()
-                                .toLowerCase())
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Text(
-                          'No puedes agregar partidos si no eres el creador de la quiniela.',
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    Text(
-                      'Agregar Partido',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _localController,
-                            decoration: InputDecoration(
-                              labelText: 'Equipo Local',
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: TextField(
-                            controller: _visitanteController,
-                            decoration: InputDecoration(
-                              labelText: 'Equipo Visitante',
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        ElevatedButton(
-                          onPressed:
-                              (_usuarioActual != null &&
-                                  _quiniela != null &&
-                                  _usuarioActual!.trim().toLowerCase() ==
-                                      _quiniela!['creada_por']
-                                          .toString()
-                                          .trim()
-                                          .toLowerCase())
-                              ? _agregarPartido
-                              : null,
-                          child: Text('Agregar'),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 24),
-                    ExpansionTile(
-                      title: Text(
-                        'Participantes',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      children: (_quiniela!['participantes'] as List).map<Widget>((
-                        p,
-                      ) {
-                        final eleccionesParticipante = _elecciones.firstWhere(
-                          (e) => e['participante'] == p,
-                          orElse: () => null,
-                        );
-                        return ExpansionTile(
-                          title: Row(
-                            children: [
-                              Text(p.toString()),
-                              SizedBox(width: 8),
-                              Builder(
-                                builder: (context) {
-                                  final rank = _ranking.firstWhere(
-                                    (r) => r['usuario'] == p,
-                                    orElse: () => null,
-                                  );
-                                  if (rank != null) {
-                                    return Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.green.shade600,
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        'Aciertos: ${rank['aciertos']} | %: ${rank['porcentaje']}',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                  return SizedBox.shrink();
-                                },
-                              ),
-                            ],
-                          ),
-                          children:
-                              (_quiniela!['mostrar_elecciones'] == true ||
-                                  p == _usuarioActual)
-                              ? (eleccionesParticipante != null
-                                    ? (eleccionesParticipante['elecciones'] as List).map<
-                                        Widget
-                                      >((el) {
-                                        return ListTile(
-                                          title: Text(
-                                            '${el['equipo_local']} vs ${el['equipo_visitante']}',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          subtitle: Text(
-                                            'Elegido: ${el['equipo_elegido']}',
-                                            style: TextStyle(
-                                              color: Colors.deepPurple,
-                                            ),
-                                          ),
-                                          trailing: el['resultado_real'] != null
-                                              ? Text(
-                                                  'Resultado: ${el['resultado_real']}',
-                                                )
-                                              : null,
-                                        );
-                                      }).toList()
-                                    : [
-                                        ListTile(
-                                          title: Text(
-                                            'Sin elecciones registradas',
-                                          ),
-                                        ),
-                                      ])
-                              : [
-                                  ListTile(
-                                    title: Text(
-                                      p == _usuarioActual
-                                          ? 'Tus elecciones están ocultas para los demás.'
-                                          : 'Las elecciones de este participante están ocultas.',
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                  ),
-                                ],
-                        );
-                      }).toList(),
-                    ),
-                    Text(
-                      'Partidos:',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 300, // Ajusta la altura según tu preferencia
-                      child: ListView.builder(
-                        itemCount: (_quiniela!['partidos'] as List).length,
-                        itemBuilder: (context, idx) {
-                          final partido = _quiniela!['partidos'][idx];
-                          return ListTile(
-                            title: Text(
-                              '${partido['equipo_local']} vs ${partido['equipo_visitante']}',
-                            ),
-                            subtitle: Text(
-                              'Resultado: ${partido['resultado_real'] ?? "Sin resultado"}',
-                            ),
-                            trailing:
-                                (_usuarioActual != null &&
-                                    _usuarioActual!.trim().toLowerCase() ==
-                                        _quiniela!['creada_por']
-                                            .toString()
-                                            .trim()
-                                            .toLowerCase())
-                                ? IconButton(
-                                    icon: Icon(Icons.edit, color: Colors.amber),
-                                    tooltip: 'Ingresar resultado',
-                                    onPressed: () =>
-                                        _ingresarResultado(partido['id']),
-                                  )
-                                : null,
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
     );
   }
 }
