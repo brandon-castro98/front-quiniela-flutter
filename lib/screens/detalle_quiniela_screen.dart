@@ -376,7 +376,44 @@ class _DetalleQuinielaScreenState extends State<DetalleQuinielaScreen> {
                       'Dueño: ${_quiniela!['creada_por']}',
                       style: TextStyle(fontSize: 16, color: Colors.blue),
                     ),
-                    if (_usuarioActual != null)
+                    if (_usuarioActual != null &&
+                        _quiniela != null &&
+                        _usuarioActual!.trim().toLowerCase() ==
+                            _quiniela!['creada_por']
+                                .toString()
+                                .trim()
+                                .toLowerCase())
+                      Row(
+                        children: [
+                          Text(
+                            'Mostrar elecciones a todos:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Switch(
+                            value: _quiniela!['mostrar_elecciones'] ?? false,
+                            onChanged: (val) async {
+                              final ok = await ApiService.setMostrarElecciones(
+                                widget.quinielaId,
+                                val,
+                              );
+                              if (ok) {
+                                await _loadDetalle(); // <-- Recarga el detalle de la quiniela
+                                await _loadElecciones(); // <-- Recarga las elecciones
+                                setState(() {});
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Error al actualizar visibilidad',
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    if (_quiniela!['mostrar_elecciones'] == true)
                       Builder(
                         builder: (context) {
                           final userRank = _ranking.firstWhere(
@@ -409,6 +446,14 @@ class _DetalleQuinielaScreenState extends State<DetalleQuinielaScreen> {
                           }
                           return SizedBox.shrink();
                         },
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'Las elecciones de los participantes están ocultas.',
+                          style: TextStyle(color: Colors.grey),
+                        ),
                       ),
                     SizedBox(height: 16),
                     if (_usuarioActual != null &&
@@ -522,33 +567,48 @@ class _DetalleQuinielaScreenState extends State<DetalleQuinielaScreen> {
                               ),
                             ],
                           ),
-                          children: eleccionesParticipante != null
-                              ? (eleccionesParticipante['elecciones'] as List).map<
-                                  Widget
-                                >((el) {
-                                  return ListTile(
-                                    title: Text(
-                                      '${el['equipo_local']} vs ${el['equipo_visitante']}',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    subtitle: Text(
-                                      'Elegido: ${el['equipo_elegido']}',
-                                      style: TextStyle(
-                                        color: Colors.deepPurple,
-                                      ),
-                                    ),
-                                    trailing: el['resultado_real'] != null
-                                        ? Text(
-                                            'Resultado: ${el['resultado_real']}',
-                                          )
-                                        : null,
-                                  );
-                                }).toList()
+                          children:
+                              (_quiniela!['mostrar_elecciones'] == true ||
+                                  p == _usuarioActual)
+                              ? (eleccionesParticipante != null
+                                    ? (eleccionesParticipante['elecciones'] as List).map<
+                                        Widget
+                                      >((el) {
+                                        return ListTile(
+                                          title: Text(
+                                            '${el['equipo_local']} vs ${el['equipo_visitante']}',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          subtitle: Text(
+                                            'Elegido: ${el['equipo_elegido']}',
+                                            style: TextStyle(
+                                              color: Colors.deepPurple,
+                                            ),
+                                          ),
+                                          trailing: el['resultado_real'] != null
+                                              ? Text(
+                                                  'Resultado: ${el['resultado_real']}',
+                                                )
+                                              : null,
+                                        );
+                                      }).toList()
+                                    : [
+                                        ListTile(
+                                          title: Text(
+                                            'Sin elecciones registradas',
+                                          ),
+                                        ),
+                                      ])
                               : [
                                   ListTile(
-                                    title: Text('Sin elecciones registradas'),
+                                    title: Text(
+                                      p == _usuarioActual
+                                          ? 'Tus elecciones están ocultas para los demás.'
+                                          : 'Las elecciones de este participante están ocultas.',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
                                   ),
                                 ],
                         );

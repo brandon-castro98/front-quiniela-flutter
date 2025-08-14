@@ -146,6 +146,15 @@ class ApiService {
       return false;
     }
   }
+  static Future<bool> setMostrarElecciones(int quinielaId, bool mostrar) async {
+  final headers = await getAuthHeaders();
+  final response = await http.patch(
+    Uri.parse('$baseUrl/api/quinielas/$quinielaId/cambiar-mostrar-elecciones/'),
+    headers: headers,
+    body: jsonEncode({'mostrar_elecciones': mostrar}),
+  );
+  return response.statusCode == 200;
+}
 
   static Future<bool> registrarUsuario(
     String username,
