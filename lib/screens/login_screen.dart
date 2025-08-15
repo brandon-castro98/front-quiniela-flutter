@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'register_screen.dart';
+import 'quinielas_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -29,7 +30,11 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     if (success) {
-      Navigator.pushReplacementNamed(context, '/quinielas');
+      Navigator.pushAndRemoveUntil(
+  context,
+  MaterialPageRoute(builder: (context) => QuinielasScreen()),
+  (route) => false,
+);
     } else {
       setState(() {
         _error = 'Usuario o contraseña incorrectos';
