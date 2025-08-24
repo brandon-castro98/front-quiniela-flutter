@@ -1,6 +1,11 @@
 {
+<<<<<<< HEAD
     "name": "quinielas_app_v3",
     "short_name": "quinielas_app_v3",
+=======
+    "name": "quinielas_app",
+    "short_name": "quinielas_app",
+>>>>>>> frontend/Evolutive-3.0-(notifications,-visual)
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

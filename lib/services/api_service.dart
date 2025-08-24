@@ -50,7 +50,6 @@ class ApiService {
       return [];
     }
   }
-
   // Refrescar access token usando el refresh token
   static Future<bool> refreshToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -107,6 +106,7 @@ class ApiService {
     return headers;
   }
 
+<<<<<<< HEAD
   static Future<List<dynamic>> getEquipos() async {
     final response = await http.get(Uri.parse('$baseUrl/api/equipos/'));
     if (response.statusCode == 200) {
@@ -115,6 +115,8 @@ class ApiService {
     return [];
   }
 
+=======
+>>>>>>> frontend/Evolutive-3.0-(notifications,-visual)
   // Obtener quinielas con retry si el access expiró
   static Future<List<dynamic>> getQuinielas() async {
     try {
@@ -170,6 +172,7 @@ class ApiService {
       return false;
     }
   }
+<<<<<<< HEAD
 
   static Future<bool> setMostrarElecciones(int quinielaId, bool mostrar) async {
     try {
@@ -185,6 +188,17 @@ class ApiService {
       return false;
     }
   }
+=======
+  static Future<bool> setMostrarElecciones(int quinielaId, bool mostrar) async {
+  final headers = await getAuthHeaders();
+  final response = await http.patch(
+    Uri.parse('$baseUrl/api/quinielas/$quinielaId/cambiar-mostrar-elecciones/'),
+    headers: headers,
+    body: jsonEncode({'mostrar_elecciones': mostrar}),
+  );
+  return response.statusCode == 200;
+}
+>>>>>>> frontend/Evolutive-3.0-(notifications,-visual)
 
   static Future<bool> registrarUsuario(
     String username,
@@ -273,9 +287,14 @@ class ApiService {
 
   static Future<bool> agregarPartido(
     int quinielaId,
+<<<<<<< HEAD
     int localId,
     int visitanteId,
     DateTime fecha,
+=======
+    String local,
+    String visitante,
+>>>>>>> frontend/Evolutive-3.0-(notifications,-visual)
   ) async {
     try {
       final headers = await getAuthHeaders();
@@ -283,9 +302,14 @@ class ApiService {
         Uri.parse('$baseUrl/api/quinielas/$quinielaId/partidos/'),
         headers: headers,
         body: jsonEncode({
+<<<<<<< HEAD
           'equipo_local_id': localId,
           'equipo_visitante_id': visitanteId,
           'fecha': fecha.toUtc().toIso8601String(),
+=======
+          'equipo_local': local,
+          'equipo_visitante': visitante,
+>>>>>>> frontend/Evolutive-3.0-(notifications,-visual)
         }),
       );
       return response.statusCode == 201;
@@ -329,6 +353,7 @@ class ApiService {
     }
   }
 
+<<<<<<< HEAD
   static Future<bool> ingresarResultado(
     int quinielaId,
     int partidoId,
@@ -342,6 +367,15 @@ class ApiService {
         ),
         headers: headers,
         body: jsonEncode({'resultado_equipo_id': equipoGanadorId}),
+=======
+  static Future<bool> ingresarResultado(int partidoId, String resultado) async {
+    try {
+      final headers = await getAuthHeaders();
+      final response = await http.patch(
+        Uri.parse('$baseUrl/api/partidos/$partidoId/resultado/'),
+        headers: headers,
+        body: jsonEncode({'resultado_real': resultado}),
+>>>>>>> frontend/Evolutive-3.0-(notifications,-visual)
       );
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
@@ -376,6 +410,7 @@ class ApiService {
     await prefs.remove('username');
     await prefs.remove('access_exp');
   }
+<<<<<<< HEAD
 
   // Enviar token FCM al servidor
   static Future<bool> sendFcmToken(String fcmToken) async {
@@ -407,4 +442,6 @@ class ApiService {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('username');
   }
+=======
+>>>>>>> frontend/Evolutive-3.0-(notifications,-visual)
 }

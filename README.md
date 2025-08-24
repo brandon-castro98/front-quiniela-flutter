@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # quinielas_app_v3
+=======
+# quinielas_app
+>>>>>>> frontend/Evolutive-3.0-(notifications,-visual)
 
 A new Flutter project.
 

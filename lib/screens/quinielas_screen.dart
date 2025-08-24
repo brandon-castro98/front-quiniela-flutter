@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+<<<<<<< HEAD
 import '../services/cache_service.dart';
 import '../services/animation_service.dart';
 import 'create_quinielas.dart';
 import 'detalle_quiniela_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
+=======
+import 'create_quinielas.dart';
+import 'detalle_quiniela_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+>>>>>>> frontend/Evolutive-3.0-(notifications,-visual)
 import 'dart:async';
 
 class QuinielasScreen extends StatefulWidget {
@@ -14,11 +20,16 @@ class QuinielasScreen extends StatefulWidget {
 }
 
 class _QuinielasScreenState extends State<QuinielasScreen>
+<<<<<<< HEAD
     with WidgetsBindingObserver, TickerProviderStateMixin {
+=======
+    with WidgetsBindingObserver {
+>>>>>>> frontend/Evolutive-3.0-(notifications,-visual)
   List<dynamic> _quinielas = [];
   bool _loading = true;
   String? _usuarioActual;
   Timer? _sessionTimer;
+<<<<<<< HEAD
   String _searchQuery = '';
   String _filterStatus = 'all'; // 'all', 'joined', 'available'
   Set<int> _deletingQuinielas = {}; // Para trackear quinielas siendo eliminadas
@@ -65,6 +76,16 @@ class _QuinielasScreenState extends State<QuinielasScreen>
         }
       }
     }
+=======
+
+  void _loadQuinielas() async {
+    setState(() => _loading = true);
+    final data = await ApiService.getQuinielas();
+    setState(() {
+      _quinielas = data;
+      _loading = false;
+    });
+>>>>>>> frontend/Evolutive-3.0-(notifications,-visual)
   }
 
   void _logout() async {
@@ -79,6 +100,7 @@ class _QuinielasScreenState extends State<QuinielasScreen>
     });
   }
 
+<<<<<<< HEAD
   List<dynamic> get _filteredQuinielas {
     var filtered = _quinielas.where((q) {
       // Filtro por búsqueda
@@ -111,15 +133,21 @@ class _QuinielasScreenState extends State<QuinielasScreen>
     return filtered;
   }
 
+=======
+>>>>>>> frontend/Evolutive-3.0-(notifications,-visual)
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+<<<<<<< HEAD
     _setupAnimations();
+=======
+>>>>>>> frontend/Evolutive-3.0-(notifications,-visual)
     _loadUsuarioActual();
     _loadQuinielas();
     _startSessionTimer();
   }
+<<<<<<< HEAD
   
   void _setupAnimations() {
     _fadeController = AnimationController(
@@ -152,11 +180,14 @@ class _QuinielasScreenState extends State<QuinielasScreen>
     _fadeController.forward();
     _slideController.forward();
   }
+=======
+>>>>>>> frontend/Evolutive-3.0-(notifications,-visual)
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       Navigator.of(context).popUntil((route) => route.isFirst);
+<<<<<<< HEAD
       // Llamar _loadQuinielas sin await ya que es void
       _loadQuinielas();
     }
@@ -166,6 +197,11 @@ class _QuinielasScreenState extends State<QuinielasScreen>
   void _refreshQuinielas() {
     _loadQuinielas(); // No usar await ya que _loadQuinielas es void
   }
+=======
+      _loadQuinielas();
+    }
+  }
+>>>>>>> frontend/Evolutive-3.0-(notifications,-visual)
 
   void _startSessionTimer() async {
     final prefs = await SharedPreferences.getInstance();
@@ -210,6 +246,7 @@ class _QuinielasScreenState extends State<QuinielasScreen>
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
+<<<<<<< HEAD
               _sessionTimer?.cancel();
               final refreshed = await ApiService.refreshToken();
               if (refreshed) {
@@ -217,6 +254,15 @@ class _QuinielasScreenState extends State<QuinielasScreen>
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Token refrescado')),
                 );
+=======
+              _sessionTimer?.cancel(); // <-- Esto cierra el aviso
+              final refreshed = await ApiService.refreshToken();
+              if (refreshed) {
+                _startSessionTimer();
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('Token refrescado')));
+>>>>>>> frontend/Evolutive-3.0-(notifications,-visual)
               } else {
                 _logout();
               }
@@ -226,14 +272,21 @@ class _QuinielasScreenState extends State<QuinielasScreen>
         ],
       ),
     );
+<<<<<<< HEAD
+=======
+    // Timer para cerrar sesión si no refresca en 30 segundos
+>>>>>>> frontend/Evolutive-3.0-(notifications,-visual)
     _sessionTimer = Timer(Duration(seconds: 30), _logout);
   }
 
   @override
   void dispose() {
     _sessionTimer?.cancel();
+<<<<<<< HEAD
     _fadeController.dispose();
     _slideController.dispose();
+=======
+>>>>>>> frontend/Evolutive-3.0-(notifications,-visual)
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -241,6 +294,7 @@ class _QuinielasScreenState extends State<QuinielasScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+<<<<<<< HEAD
       backgroundColor: Color(0xFFF5F7FA),
       body: CustomScrollView(
         slivers: [
@@ -912,6 +966,233 @@ class _QuinielasScreenState extends State<QuinielasScreen>
             child: Text('Eliminar'),
           ),
         ],
+=======
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Icon(Icons.sports_soccer, color: Colors.amber.shade700),
+            SizedBox(width: 8),
+            Text('Lista de Quinielas'),
+            if (_usuarioActual != null) ...[
+              SizedBox(width: 12),
+              Text(
+                '($_usuarioActual)',
+                style: TextStyle(fontSize: 16, color: Colors.white70),
+              ),
+            ],
+          ],
+        ),
+        backgroundColor: Colors.deepPurple,
+        actions: [IconButton(onPressed: _logout, icon: Icon(Icons.logout))],
+      ),
+      backgroundColor: Colors.amber.shade50,
+      body: _loading
+          ? Center(child: CircularProgressIndicator())
+          : _quinielas.isEmpty
+          ? Center(
+              child: Text(
+                'No hay quinielas disponibles.',
+                style: TextStyle(fontSize: 20, color: Colors.grey),
+              ),
+            )
+          : Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+              child: ListView.builder(
+                itemCount: _quinielas.length,
+                itemBuilder: (context, index) {
+                  final q = _quinielas[index];
+                  return Card(
+                    elevation: 6,
+                    margin: EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                      side: BorderSide(
+                        color: Colors.deepPurple.shade100,
+                        width: 2,
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 18,
+                        horizontal: 16,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.emoji_events,
+                                color: Colors.deepPurple,
+                                size: 28,
+                              ),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  q['nombre'],
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Colors.deepPurple.shade700,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Apuesta: \$${q['apuesta_individual']}',
+                            style: TextStyle(
+                              color: Colors.deepPurple.shade400,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: ElevatedButton(
+                                    onPressed: () async {
+                                      bool joined =
+                                          await ApiService.unirseQuiniela(
+                                            q['id'],
+                                          );
+                                      if (joined) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Te uniste a la quiniela',
+                                            ),
+                                          ),
+                                        );
+                                      } else {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Ya perteneces a esta quiniela',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.amber.shade700,
+                                      foregroundColor: Colors.white,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 8,
+                                      ),
+                                      textStyle: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      "Unirse",
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: ElevatedButton.icon(
+                                    icon: Icon(Icons.arrow_forward, size: 18),
+                                    label: Text(
+                                      'Detalles',
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.deepPurple,
+                                      foregroundColor: Colors.white,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 8,
+                                      ),
+                                      textStyle: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              DetalleQuinielaScreen(
+                                                quinielaId: q['id'],
+                                              ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              IconButton(
+                                icon: Icon(Icons.delete, color: Colors.red),
+                                onPressed: () async {
+                                  bool eliminado =
+                                      await ApiService.eliminarQuiniela(
+                                        q['id'],
+                                      );
+                                  if (eliminado) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Quiniela eliminada'),
+                                      ),
+                                    );
+                                    _loadQuinielas();
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'No tienes permisos para eliminar la quiniela',
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => CrearQuinielaScreen()),
+          );
+          if (result == true) {
+            _loadQuinielas();
+          }
+        },
+        icon: Icon(Icons.add),
+        label: Text('Crear Quiniela'),
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
+>>>>>>> frontend/Evolutive-3.0-(notifications,-visual)
       ),
     );
   }
