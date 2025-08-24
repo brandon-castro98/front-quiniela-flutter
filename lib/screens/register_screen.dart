@@ -36,7 +36,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.deepPurple, Colors.amber.shade700],
+            colors: [Color(0xFF013369), Color(0xFFD50A0A)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -60,12 +60,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       color: Colors.amber.shade700,
                     ),
                     SizedBox(height: 16),
+                    Image.asset('assets/nfl_logo.png', height: 80),
+                    SizedBox(height: 16),
                     Text(
                       'Registro de Usuario',
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
-                        color: Colors.deepPurple,
+                        color: Color(0xFF013369),
                       ),
                     ),
                     SizedBox(height: 24),
@@ -103,7 +105,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             width: double.infinity,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.deepPurple,
+                                backgroundColor: Color(0xFFD50A0A),
                                 foregroundColor: Colors.white,
                                 padding: EdgeInsets.symmetric(vertical: 14),
                                 textStyle: TextStyle(

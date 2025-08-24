@@ -30,8 +30,17 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        primarySwatch: Colors.blue,
+        primaryColor: Color(0xFF013369),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Color(0xFF013369),
+          primary: Color(0xFF013369),
+          secondary: Color(0xFFD50A0A),
+        ),
+        scaffoldBackgroundColor: Color(0xFFE5E5E5),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Color(0xFF013369),
+          foregroundColor: Colors.white,
+        ),
       ),
       initialRoute: '/',
       routes: {

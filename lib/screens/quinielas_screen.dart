@@ -131,22 +131,42 @@ class _QuinielasScreenState extends State<QuinielasScreen>
       appBar: AppBar(
         title: Row(
           children: [
-            Icon(Icons.sports_soccer, color: Colors.amber.shade700),
-            SizedBox(width: 8),
-            Text('Lista de Quinielas'),
-            if (_usuarioActual != null) ...[
-              SizedBox(width: 12),
-              Text(
-                '($_usuarioActual)',
-                style: TextStyle(fontSize: 16, color: Colors.white70),
-              ),
-            ],
+            Image.asset('assets/nfl_logo.png', height: 32),
+            SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Quinielas NFL',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                if (_usuarioActual != null)
+                  Text(
+                    '$_usuarioActual',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+              ],
+            ),
           ],
         ),
-        backgroundColor: Colors.deepPurple,
-        actions: [IconButton(onPressed: _logout, icon: Icon(Icons.logout))],
+        backgroundColor: Color(0xFF013369),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout, color: Colors.white),
+            tooltip: 'Cerrar sesión',
+            onPressed: _logout,
+          ),
+        ],
       ),
-      backgroundColor: Colors.amber.shade50,
+      backgroundColor: Color(0xFFE5E5E5),
       body: _loading
           ? Center(child: CircularProgressIndicator())
           : _quinielas.isEmpty
@@ -194,7 +214,12 @@ class _QuinielasScreenState extends State<QuinielasScreen>
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 18,
-                                    color: Colors.deepPurple.shade700,
+                                    color: const Color.fromARGB(
+                                      255,
+                                      240,
+                                      20,
+                                      20,
+                                    ),
                                   ),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
@@ -206,7 +231,7 @@ class _QuinielasScreenState extends State<QuinielasScreen>
                           Text(
                             'Apuesta: \$${q['apuesta_individual']}',
                             style: TextStyle(
-                              color: Colors.deepPurple.shade400,
+                              color: const Color.fromARGB(255, 223, 30, 16),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -218,35 +243,52 @@ class _QuinielasScreenState extends State<QuinielasScreen>
                                 child: FittedBox(
                                   fit: BoxFit.scaleDown,
                                   child: ElevatedButton(
-                                    onPressed: () async {
-                                      bool joined =
-                                          await ApiService.unirseQuiniela(
-                                            q['id'],
-                                          );
-                                      if (joined) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              'Te uniste a la quiniela',
-                                            ),
-                                          ),
-                                        );
-                                      } else {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              'Ya perteneces a esta quiniela',
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                    },
+                                    onPressed:
+                                        (q['participantes'] != null &&
+                                            _usuarioActual != null &&
+                                            (q['participantes'] as List)
+                                                .map(
+                                                  (p) => p
+                                                      .toString()
+                                                      .trim()
+                                                      .toLowerCase(),
+                                                )
+                                                .contains(
+                                                  _usuarioActual!
+                                                      .trim()
+                                                      .toLowerCase(),
+                                                ))
+                                        ? null
+                                        : () async {
+                                            bool joined =
+                                                await ApiService.unirseQuiniela(
+                                                  q['id'],
+                                                );
+                                            if (joined) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    'Te uniste a la quiniela',
+                                                  ),
+                                                ),
+                                              );
+                                              _loadQuinielas(); // Refresca la lista desde el backend
+                                            } else {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    'Ya perteneces a esta quiniela',
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          },
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.amber.shade700,
+                                      backgroundColor: Color(0xFFD50A0A),
                                       foregroundColor: Colors.white,
                                       padding: EdgeInsets.symmetric(
                                         horizontal: 12,
@@ -277,7 +319,12 @@ class _QuinielasScreenState extends State<QuinielasScreen>
                                       style: TextStyle(fontSize: 14),
                                     ),
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.deepPurple,
+                                      backgroundColor: Color.fromARGB(
+                                        255,
+                                        13,
+                                        10,
+                                        213,
+                                      ),
                                       foregroundColor: Colors.white,
                                       padding: EdgeInsets.symmetric(
                                         horizontal: 12,
@@ -290,17 +337,33 @@ class _QuinielasScreenState extends State<QuinielasScreen>
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                     ),
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              DetalleQuinielaScreen(
-                                                quinielaId: q['id'],
+                                    onPressed:
+                                        (q['participantes'] != null &&
+                                            _usuarioActual != null &&
+                                            (q['participantes'] as List)
+                                                .map(
+                                                  (p) => p
+                                                      .toString()
+                                                      .trim()
+                                                      .toLowerCase(),
+                                                )
+                                                .contains(
+                                                  _usuarioActual!
+                                                      .trim()
+                                                      .toLowerCase(),
+                                                ))
+                                        ? () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    DetalleQuinielaScreen(
+                                                      quinielaId: q['id'],
+                                                    ),
                                               ),
-                                        ),
-                                      );
-                                    },
+                                            );
+                                          }
+                                        : null,
                                   ),
                                 ),
                               ),

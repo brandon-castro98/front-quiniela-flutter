@@ -4,8 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
   // Pon aquí tu URL de ngrok (actualízala cuando ngrok cambie)
-  static const String baseUrl = 'https://api-quiniela-phiv.onrender.com';
-
+    static const String baseUrl = 'https://api-quiniela-phiv.onrender.com';
   // LOGIN -> usa /api/login/
   static Future<bool> login(String username, String password) async {
     final response = await http.post(
@@ -33,6 +32,23 @@ class ApiService {
       return true;
     }
     return false;
+  }
+
+  static Future<List<dynamic>> getPartidos(int quinielaId) async {
+    try {
+      final headers = await getAuthHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/quinielas/$quinielaId/partidos/'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as List<dynamic>;
+      }
+      return [];
+    } catch (e) {
+      print('Error al obtener partidos: $e');
+      return [];
+    }
   }
 
   // Refrescar access token usando el refresh token
@@ -91,6 +107,14 @@ class ApiService {
     return headers;
   }
 
+  static Future<List<dynamic>> getEquipos() async {
+    final response = await http.get(Uri.parse('$baseUrl/api/equipos/'));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    return [];
+  }
+
   // Obtener quinielas con retry si el access expiró
   static Future<List<dynamic>> getQuinielas() async {
     try {
@@ -146,15 +170,21 @@ class ApiService {
       return false;
     }
   }
+
   static Future<bool> setMostrarElecciones(int quinielaId, bool mostrar) async {
-  final headers = await getAuthHeaders();
-  final response = await http.patch(
-    Uri.parse('$baseUrl/api/quinielas/$quinielaId/cambiar-mostrar-elecciones/'),
-    headers: headers,
-    body: jsonEncode({'mostrar_elecciones': mostrar}),
-  );
-  return response.statusCode == 200;
-}
+    try {
+      final headers = await getAuthHeaders();
+      final response = await http.patch(
+        Uri.parse('$baseUrl/api/quinielas/$quinielaId/mostrar-elecciones/'),
+        headers: headers,
+        body: jsonEncode({'mostrar_elecciones': mostrar}),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error al cambiar mostrar_elecciones: $e');
+      return false;
+    }
+  }
 
   static Future<bool> registrarUsuario(
     String username,
@@ -243,8 +273,9 @@ class ApiService {
 
   static Future<bool> agregarPartido(
     int quinielaId,
-    String local,
-    String visitante,
+    int localId,
+    int visitanteId,
+    DateTime fecha,
   ) async {
     try {
       final headers = await getAuthHeaders();
@@ -252,8 +283,9 @@ class ApiService {
         Uri.parse('$baseUrl/api/quinielas/$quinielaId/partidos/'),
         headers: headers,
         body: jsonEncode({
-          'equipo_local': local,
-          'equipo_visitante': visitante,
+          'equipo_local_id': localId,
+          'equipo_visitante_id': visitanteId,
+          'fecha': fecha.toUtc().toIso8601String(),
         }),
       );
       return response.statusCode == 201;
@@ -297,13 +329,19 @@ class ApiService {
     }
   }
 
-  static Future<bool> ingresarResultado(int partidoId, String resultado) async {
+  static Future<bool> ingresarResultado(
+    int quinielaId,
+    int partidoId,
+    int equipoGanadorId,
+  ) async {
     try {
       final headers = await getAuthHeaders();
-      final response = await http.patch(
-        Uri.parse('$baseUrl/api/partidos/$partidoId/resultado/'),
+      final response = await http.post(
+        Uri.parse(
+          '$baseUrl/api/quinielas/$quinielaId/partidos/$partidoId/resultado/',
+        ),
         headers: headers,
-        body: jsonEncode({'resultado_real': resultado}),
+        body: jsonEncode({'resultado_equipo_id': equipoGanadorId}),
       );
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
